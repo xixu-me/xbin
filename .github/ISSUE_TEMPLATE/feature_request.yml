@@ -1,0 +1,55 @@
+name: Feature request
+description: Suggest a scoped improvement that fits Xbin's core workflow.
+title: '[feature]: '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea.
+
+        Xbin is intentionally focused on secure, encrypted paste sharing. Requests that stay close to that core are easier to review and maintain.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem are you trying to solve?
+      placeholder: Describe the pain point or unmet need.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you like to happen?
+      placeholder: Describe the behavior, flow, or API change you want.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or alternatives have you considered?
+  - type: textarea
+    id: scope
+    attributes:
+      label: Why this fits Xbin
+      description: Help explain how this aligns with the project's scope.
+      placeholder: Explain why this improves secure paste sharing, compatibility, maintainability, or operations.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, API examples, screenshots, or related links.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and pull requests first.
+          required: true
+        - label: I read the README and CONTRIBUTING guide.
+          required: true

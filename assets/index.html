@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en" class="h-100">
+	<head>
+		<!-- Static shell for the client app; runtime content is filled in by app.js. -->
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta id="meta-robots" name="robots" content="index,follow" />
+		<meta name="google" content="notranslate" />
+		<title>Xbin - Private, end-to-end encrypted pastebin</title>
+		<meta
+			id="meta-description"
+			name="description"
+			content="Xbin is a private, end-to-end encrypted pastebin for secure notes, code, and files, with passwords, expiration, and burn-after-reading links."
+		/>
+		<link id="link-canonical" rel="canonical" href="/" />
+		<link rel="icon" type="image/svg+xml" href="/vendor/icon.svg" />
+		<meta name="theme-color" content="#17324d" />
+		<meta property="og:type" content="website" />
+		<meta id="meta-og-url" property="og:url" content="/" />
+		<meta name="twitter:card" content="summary" />
+		<meta id="meta-twitter-title" name="twitter:title" content="Encrypted note on Xbin" />
+		<meta
+			id="meta-twitter-description"
+			name="twitter:description"
+			content="Visit this link to see the note. Giving the URL to anyone allows them to access the note, too."
+		/>
+		<meta id="meta-og-title" property="og:title" content="Xbin" />
+		<meta id="meta-og-site-name" property="og:site_name" content="Xbin" />
+		<meta
+			id="meta-og-description"
+			property="og:description"
+			content="Visit this link to see the note. Giving the URL to anyone allows them to access the note, too."
+		/>
+		<meta name="twitter:image" content="/vendor/icon.svg" />
+		<meta property="og:image" content="/vendor/icon.svg" />
+		<meta property="og:image:type" content="image/svg+xml" />
+		<meta property="og:image:width" content="38" />
+		<meta property="og:image:height" content="38" />
+		<link rel="stylesheet" href="/vendor/bootstrap-5.3.8.css" />
+		<link rel="stylesheet" href="/vendor/prettify.css" />
+		<link rel="stylesheet" href="/app.css" />
+	</head>
+	<body role="document" data-compression="none" class="d-flex flex-column h-100">
+		<!-- Dialogs cover password entry, burn-after-reading confirmation, QR display, and email timezone choice. -->
+		<div id="passwordmodal" tabindex="-1" class="modal fade" role="dialog" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<form id="passwordform" role="form">
+							<div class="mb-3">
+								<label for="passworddecrypt">
+									<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#eye" /></svg>
+									Please enter the password for this document:
+								</label>
+								<div class="input-group">
+									<input
+										id="passworddecrypt"
+										type="password"
+										class="form-control input-password"
+										placeholder="Enter password"
+										required="required"
+									/>
+									<button class="btn btn-outline-secondary toggle-password" type="button" title="Show password" aria-label="Show password">
+										<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#eye" /></svg>
+									</button>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-success w-100">
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#power" /></svg>
+								Decrypt
+							</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="loadconfirmmodal" tabindex="-1" class="modal fade" role="dialog" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">This secret message can only be displayed once. Would you like to see it now?</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body text-center">
+						<button id="loadconfirm-open-now" type="button" class="btn btn-success" data-bs-dismiss="modal">
+							<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+								<use href="/vendor/bootstrap-icons.svg#cloud-download" />
+							</svg>
+							Yes, see it
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="qrcodemodal" tabindex="-1" class="modal fade" role="dialog" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">QR code</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="mx-auto" id="qrcode-display"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="emailconfirmmodal" tabindex="-1" class="modal fade" role="dialog" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Recipient may become aware of your timezone, convert time to UTC?</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body row">
+						<div class="col-12 col-md-6">
+							<button id="emailconfirm-timezone-current" type="button" class="btn btn-danger">
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+									<use href="/vendor/bootstrap-icons.svg#clock" />
+								</svg>
+								Use Current Timezone
+							</button>
+						</div>
+						<div class="col-12 col-md-6 text-right">
+							<button id="emailconfirm-timezone-utc" type="button" class="btn btn-success">
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+									<use href="/vendor/bootstrap-icons.svg#globe" />
+								</svg>
+								Convert To UTC
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- The top navigation switches between compose-only controls and share/view actions. -->
+		<nav class="navbar navbar-expand-lg bg-body-tertiary text-nowrap mb-3">
+			<div class="container-fluid">
+				<a id="brand-link" class="reloadlink navbar-brand" href="/">
+					<img id="brand-icon" alt="Xbin" src="/vendor/icon.svg" height="38" />
+				</a>
+				<button
+					class="navbar-toggler"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#navbar"
+					aria-controls="navbar"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div id="navbar" class="collapse navbar-collapse">
+					<ul class="navbar-nav me-auto gap-2 align-items-lg-center align-items-stretch">
+						<li id="loadingindicator" class="navbar-text hidden me-auto">
+							<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#clock" /></svg>
+							<span id="loadingindicator-text">Loading…</span>
+						</li>
+						<li class="nav-item d-flex flex-lg-row flex-column">
+							<button
+								id="retrybutton"
+								type="button"
+								class="reloadlink hidden btn btn-primary d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#repeat" /></svg>
+								Retry
+							</button>
+						</li>
+						<li class="nav-item d-flex flex-lg-row flex-column gap-2">
+							<button
+								id="newbutton"
+								type="button"
+								class="hidden btn btn-secondary flex-fill d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+									<use href="/vendor/bootstrap-icons.svg#file-earmark" />
+								</svg>
+								New
+							</button>
+							<button
+								id="clonebutton"
+								type="button"
+								class="hidden btn btn-secondary flex-fill d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#copy" /></svg>
+								Clone
+							</button>
+							<button
+								id="rawtextbutton"
+								type="button"
+								class="hidden btn btn-secondary flex-fill d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+									<use href="/vendor/bootstrap-icons.svg#filetype-txt" />
+								</svg>
+								Raw text
+							</button>
+							<button
+								id="downloadtextbutton"
+								type="button"
+								class="hidden btn btn-secondary flex-fill d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#download" /></svg>
+								Save document
+							</button>
+							<button
+								id="emaillink"
+								type="button"
+								class="hidden btn btn-secondary flex-fill d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#envelope" /></svg>
+								Email
+							</button>
+							<button
+								id="qrcodelink"
+								type="button"
+								data-bs-toggle="modal"
+								data-bs-target="#qrcodemodal"
+								class="hidden btn btn-secondary flex-fill d-flex justify-content-center align-items-center gap-1"
+							>
+								<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#qr-code" /></svg>
+								QR code
+							</button>
+						</li>
+						<li id="expiration" class="nav-item d-flex hidden">
+							<label for="pasteExpiration" class="form-label my-auto me-1">Expires:</label>
+							<select id="pasteExpiration" name="pasteExpiration" class="form-select"></select>
+						</li>
+						<li class="nav-item">
+							<div id="burnafterreadingoption" class="navbar-text form-check hidden">
+								<input class="form-check-input" type="checkbox" id="burnafterreading" name="burnafterreading" />
+								<label class="form-check-label" for="burnafterreading">Burn after reading</label>
+							</div>
+						</li>
+						<li class="nav-item">
+							<div id="opendiscussionoption" class="navbar-text form-check hidden">
+								<input class="form-check-input" type="checkbox" id="opendiscussion" name="opendiscussion" />
+								<label class="form-check-label" for="opendiscussion">Open discussion</label>
+							</div>
+						</li>
+						<li class="nav-item">
+							<div id="password" class="navbar-form hidden">
+								<div class="input-group">
+									<input
+										type="password"
+										id="passwordinput"
+										placeholder="Password (recommended)"
+										aria-label="Password (recommended)"
+										class="form-control input-password"
+										size="23"
+									/>
+									<button class="btn btn-outline-secondary toggle-password" type="button" title="Show password" aria-label="Show password">
+										<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#eye" /></svg>
+									</button>
+								</div>
+							</div>
+						</li>
+						<li id="attach" class="nav-item hidden dropdown">
+							<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">Attach a file</a>
+							<ul class="dropdown-menu px-2">
+								<li id="filewrap">
+									<div>
+										<input type="file" id="file" name="file" class="form-control" multiple />
+									</div>
+									<div id="dragAndDropFileName" class="dragAndDropFile">
+										alternatively drag &amp; drop a file or paste an image from the clipboard
+									</div>
+								</li>
+								<li id="customattachment" class="hidden d-flex flex-column px-3"></li>
+								<li>
+									<a id="fileremovebutton" href="#" class="dropdown-item">Remove attachment</a>
+								</li>
+							</ul>
+						</li>
+						<li id="formatter" class="nav-item d-flex hidden">
+							<label for="pasteFormatter" class="form-label my-auto me-1">Format:</label>
+							<select id="pasteFormatter" name="pasteFormatter" class="form-select">
+								<option value="plaintext" selected="selected">Plain Text</option>
+								<option value="syntaxhighlighting">Source Code</option>
+								<option value="markdown">Markdown</option>
+							</select>
+						</li>
+						<li class="nav-item">
+							<div class="form-check form-switch navbar-text">
+								<input id="bd-theme" type="checkbox" class="form-check-input" />
+								<label for="bd-theme" class="form-check-label">Dark Mode</label>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+		<main>
+			<!-- Main content areas host status messages, the editor/viewer surface, and the comment thread. -->
+			<section class="container-fluid mt-2">
+				<div id="remainingtime" role="alert" class="hidden alert alert-info">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#fire" /></svg>
+					<span id="remainingtime-text"></span>
+				</div>
+				<div id="attachment" class="hidden"></div>
+				<div id="status" role="alert" class="d-flex justify-content-between align-items-center alert alert-info hidden">
+					<div>
+						<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+							<use href="/vendor/bootstrap-icons.svg#info-circle" />
+						</svg>
+						<span id="status-text"></span>
+					</div>
+					<button type="button" class="btn btn-secondary d-flex justify-content-center align-items-center gap-1 hidden" id="new-from-alert">
+						<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#repeat" /></svg>
+						Start over
+					</button>
+				</div>
+				<div id="errormessage" role="alert" class="hidden alert alert-danger">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+						<use href="/vendor/bootstrap-icons.svg#exclamation-triangle" />
+					</svg>
+					<span id="error-text"></span>
+				</div>
+				<noscript>
+					<div id="noscript-warning" role="alert" class="alert alert-warning">
+						<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+							<use href="/vendor/bootstrap-icons.svg#exclamation-circle" />
+						</svg>
+						JavaScript is required for Xbin to work. Sorry for the inconvenience.
+					</div>
+				</noscript>
+				<div id="oldnotice" role="alert" class="hidden alert alert-danger">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+						<use href="/vendor/bootstrap-icons.svg#exclamation-triangle" />
+					</svg>
+					Xbin requires a modern browser to work.
+					<a href="https://www.mozilla.org/firefox/" target="_blank" rel="noreferrer noopener">Firefox</a>,
+					<a href="https://www.opera.com/" target="_blank" rel="noreferrer noopener">Opera</a>,
+					<a href="https://www.google.com/chrome" target="_blank" rel="noreferrer noopener">Chrome</a>…<br />
+					<span class="small">
+						For more information see
+						<a
+							href="https://github.com/PrivateBin/PrivateBin/wiki/FAQ#why-does-it-show-me-the-error-privatebin-requires-a-modern-browser-to-work"
+							target="_blank"
+							rel="noreferrer noopener"
+							>this FAQ entry</a
+						>.
+					</span>
+				</div>
+				<div id="httpnotice" role="alert" class="hidden alert alert-danger">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+						<use href="/vendor/bootstrap-icons.svg#exclamation-triangle" />
+					</svg>
+					This website is using an insecure connection! Please only use it for testing.<br />
+					<span class="small">
+						For more information see
+						<a
+							href="https://github.com/PrivateBin/PrivateBin/wiki/FAQ#why-does-it-show-me-an-error-about-an-insecure-connection"
+							target="_blank"
+							rel="noreferrer noopener"
+							>this FAQ entry</a
+						>.
+					</span>
+				</div>
+				<div id="insecurecontextnotice" role="alert" class="hidden alert alert-danger">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+						<use href="/vendor/bootstrap-icons.svg#exclamation-triangle" />
+					</svg>
+					Your browser may require an HTTPS connection to support the WebCrypto API. Try
+					<a id="httpslink" href="#">switching to HTTPS</a>.
+				</div>
+				<div id="pastesuccess" class="hidden">
+					<div class="nav justify-content-between mb-2">
+						<button id="copyLink" type="button" class="btn btn-secondary d-flex justify-content-center align-items-center gap-1">
+							<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#copy" /></svg>
+							Copy link
+						</button>
+						<a href="#" id="deletelink" class="btn btn-secondary d-flex justify-content-center align-items-center gap-1">
+							<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#trash" /></svg>
+							<span>Delete data</span>
+						</a>
+					</div>
+					<div role="alert" class="alert alert-success">
+						<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#check" /></svg>
+						<div id="pastelink"></div>
+					</div>
+				</div>
+				<ul id="editorTabs" class="nav nav-tabs hidden">
+					<li role="presentation" class="nav-item me-1"><a class="nav-link active" role="tab" id="messageedit" href="#">Editor</a></li>
+					<li role="presentation" class="nav-item me-1"><a class="nav-link" role="tab" id="messagepreview" href="#">Preview</a></li>
+					<li role="presentation" class="nav-item ms-auto">
+						<button
+							id="sendbutton"
+							type="button"
+							tabindex="2"
+							class="hidden btn btn-primary d-flex justify-content-center align-items-center gap-1"
+						>
+							<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+								<use href="/vendor/bootstrap-icons.svg#cloud-upload" />
+							</svg>
+							Create
+						</button>
+					</li>
+				</ul>
+			</section>
+
+			<section class="container-fluid">
+				<article>
+					<div id="placeholder" class="col-md-12 hidden">+++ no document text +++</div>
+					<div id="attachmentPreview" class="col-md-12 text-center hidden"></div>
+					<h6 id="copyShortcutHint" class="col-md-12 hidden"><small id="copyShortcutHintText"></small></h6>
+					<div id="prettymessage" class="card col-md-12 hidden">
+						<button type="button" id="prettyMessageCopyBtn" class="text-secondary opacity-05-1-hover">
+							<svg id="copyIcon" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#copy" /></svg>
+							<svg id="copySuccessIcon" class="text-success" fill="currentColor" aria-hidden="true">
+								<use href="/vendor/bootstrap-icons.svg#check" />
+							</svg>
+						</button>
+						<pre id="prettyprint" class="card-body col-md-12 prettyprint linenums:1"></pre>
+					</div>
+					<div id="plaintext" class="col-md-12 hidden"></div>
+					<p class="col-md-12">
+						<textarea
+							id="message"
+							name="message"
+							cols="80"
+							rows="25"
+							aria-label="Document text"
+							tabindex="1"
+							class="form-control hidden"
+						></textarea>
+					</p>
+					<p class="col-md-12 form-check form-switch">
+						<input id="messagetab" type="checkbox" tabindex="3" class="form-check-input" checked="checked" />
+						<label for="messagetab" class="form-check-label"
+							>Tabulator key serves as character (Hit <kbd>Ctrl</kbd>+<kbd>m</kbd> or <kbd>Esc</kbd> to toggle)</label
+						>
+					</p>
+				</article>
+			</section>
+
+			<section class="container-fluid">
+				<div id="discussion" class="hidden">
+					<h4>Discussion</h4>
+					<div id="commentcontainer"></div>
+				</div>
+			</section>
+
+			<section class="container-fluid">
+				<div id="loadingnotice" role="alert" class="alert alert-info noscript-hide">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true">
+						<use href="/vendor/bootstrap-icons.svg#exclamation-circle" />
+					</svg>
+					Loading…<br />
+					<span class="small">
+						In case this message never disappears please have a look at
+						<a
+							href="https://github.com/PrivateBin/PrivateBin/wiki/FAQ#why-does-the-loading-message-not-go-away"
+							target="_blank"
+							rel="noreferrer noopener"
+							>this FAQ for information to troubleshoot</a
+						>.
+					</span>
+				</div>
+			</section>
+		</main>
+
+		<footer class="container-fluid mt-auto">
+			<div class="row">
+				<h5 class="col-md-5 col-xs-8"><span id="footer-app-name">Xbin</span> <small>- Private, end-to-end encrypted pastebin</small></h5>
+				<p id="footer-version" class="col-md-1 col-xs-4 text-center">1.0.0</p>
+				<p id="aboutbox" class="col-md-6 col-xs-12">
+					<span id="about-app-name">Xbin</span> is a private, end-to-end encrypted pastebin for secure notes, code, and files. Encryption
+					and decryption happen <i>in the browser</i>, with support for passwords, expiration, and burn-after-reading links. More
+					information on the
+					<a id="project-page-link" href="https://github.com/xixu-me/xbin" target="_blank" rel="noreferrer">project page</a>.
+				</p>
+			</div>
+		</footer>
+
+		<!-- Hidden templates are cloned by app.js for comments, replies, and attachment links. -->
+		<div id="serverdata" class="hidden" aria-hidden="true">
+			<div id="templates">
+				<article id="commenttemplate" class="comment px-2 pb-3">
+					<div class="commentmeta">
+						<span class="nickname">name</span>
+						<span class="commentdate">0000-00-00</span>
+					</div>
+					<div class="commentdata">c</div>
+					<button class="comment-reply-button btn btn-secondary btn-sm">Reply</button>
+				</article>
+				<p id="commenttailtemplate" class="comment px-2 pb-3">
+					<button class="btn btn-secondary btn-sm">Add comment</button>
+				</p>
+				<div id="replytemplate" class="reply hidden">
+					<input type="text" id="nickname" class="form-control my-2" title="Optional nickname…" placeholder="Optional nickname…" />
+					<textarea id="replymessage" class="replymessage form-control" cols="80" rows="7"></textarea><br />
+					<div id="replystatus" role="alert" class="statusmessage hidden alert">
+						<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#info-circle" /></svg>
+						<span class="replystatus-text"></span>
+					</div>
+					<button id="replybutton" class="btn btn-secondary btn-sm">Post comment</button>
+				</div>
+				<div id="attachmenttemplate" role="alert" class="hidden alert alert-info">
+					<svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="/vendor/bootstrap-icons.svg#download" /></svg>
+					<a class="alert-link">Download attachment<span></span></a>
+				</div>
+			</div>
+		</div>
+
+		<div id="dropzone" class="hidden" tabindex="-1" aria-hidden="true"></div>
+
+		<script src="/vendor/bootstrap-5.3.8.js"></script>
+		<script src="/vendor/kjua-0.10.0.js"></script>
+		<script src="/vendor/showdown-2.1.0.js"></script>
+		<script src="/vendor/purify-3.3.0.js"></script>
+		<script src="/vendor/prettify.js"></script>
+		<script type="module" src="/app.js"></script>
+	</body>
+</html>

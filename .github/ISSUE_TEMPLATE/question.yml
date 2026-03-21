@@ -1,0 +1,53 @@
+name: Question
+description: Ask for setup, deployment, or usage help.
+title: '[question]: '
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the question.
+
+        Please keep normal support in public issues so future users can benefit from the answer. For security issues, use `SECURITY.md` instead.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      placeholder: Describe the task or outcome you are aiming for.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried?
+      placeholder: Commands, config changes, docs you read, or troubleshooting steps.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        - OS:
+        - Bun:
+        - Wrangler:
+        - Browser:
+        - Local or deployed:
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant config, logs, or screenshots
+      description: Sanitize anything sensitive before posting.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and pull requests first.
+          required: true
+        - label: I removed secrets and sensitive data from everything shared here.
+          required: true

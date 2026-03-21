@@ -1,0 +1,9 @@
+// Test-only TypeScript overrides for the Cloudflare Vitest pool.
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"types": ["@cloudflare/vitest-pool-workers"]
+	},
+	"include": ["./**/*.ts", "../worker-configuration.d.ts"],
+	"exclude": []
+}

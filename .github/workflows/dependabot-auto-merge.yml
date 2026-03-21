@@ -1,0 +1,64 @@
+name: Dependabot Auto Merge
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
+      - '.prettierignore'
+      - '.prettierrc'
+      - 'codecov.yml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  enable:
+    if: >
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@d7267f607e9d3fb96fc2fbe83e0af444713e90b7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve safe update when repository settings allow it
+        if: >
+          contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type) ||
+          (steps.metadata.outputs.update-type == 'version-update:semver-major' &&
+           (steps.metadata.outputs.package-ecosystem == 'github-actions' ||
+            steps.metadata.outputs.dependency-type == 'direct:development'))
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr review --approve "$PR_URL" --body "Safe Dependabot update approved for auto-merge."
+
+      - name: Enable auto-merge for safe update
+        if: >
+          contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type) ||
+          (steps.metadata.outputs.update-type == 'version-update:semver-major' &&
+           (steps.metadata.outputs.package-ecosystem == 'github-actions' ||
+            steps.metadata.outputs.dependency-type == 'direct:development'))
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --merge "$PR_URL"

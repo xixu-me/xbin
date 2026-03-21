@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 38 38" fill="none">
+	<defs>
+		<linearGradient id="xbin-bg" x1="6" y1="4" x2="31" y2="34" gradientUnits="userSpaceOnUse">
+			<stop stop-color="#28577F" />
+			<stop offset="1" stop-color="#102335" />
+		</linearGradient>
+		<linearGradient id="xbin-accent" x1="12" y1="10" x2="25" y2="24" gradientUnits="userSpaceOnUse">
+			<stop stop-color="#FFE39A" />
+			<stop offset="1" stop-color="#F39B45" />
+		</linearGradient>
+	</defs>
+	<rect x="2" y="2" width="34" height="34" rx="10" fill="url(#xbin-bg)" />
+	<rect x="5" y="5" width="28" height="28" rx="8" stroke="#8FC1FF" stroke-opacity="0.25" stroke-width="1.2" />
+	<path
+		d="M13 11.5L24.8 26.5M24.8 11.5L13 26.5"
+		stroke="url(#xbin-accent)"
+		stroke-width="4"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+	/>
+	<path d="M11.5 24.75H26.5L24.6 29.5H13.4L11.5 24.75Z" fill="#0D1C2A" stroke="#A6D0FF" stroke-opacity="0.55" stroke-width="1.2" />
+	<path d="M14.8 22.1L19 26.4L23.2 22.1" stroke="#D6EBFF" stroke-opacity="0.8" stroke-width="1.1" stroke-linecap="round" />
+</svg>

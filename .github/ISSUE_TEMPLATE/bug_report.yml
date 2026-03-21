@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a reproducible defect or regression in Xbin.
+title: '[bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        Please include enough detail for someone else to reproduce the issue. For security-sensitive problems, stop here and use the private process in `SECURITY.md` instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is the bug?
+      placeholder: A short description of the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide a minimal reproduction.
+      placeholder: |
+        1. Start the Worker with ...
+        2. Open ...
+        3. Submit ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: What happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Share versions and runtime details that matter.
+      placeholder: |
+        - OS:
+        - Bun:
+        - Wrangler:
+        - Browser:
+        - Deployment mode:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or request samples
+      description: Paste sanitized details only. Never include secrets or private data.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and pull requests first.
+          required: true
+        - label: I removed secrets and sensitive data from everything shared here.
+          required: true
+        - label: This is not a security vulnerability report.
+          required: true
