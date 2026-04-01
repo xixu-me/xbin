@@ -25,7 +25,7 @@
 		"import:privatebin:fs": "node ./scripts/import-privatebin-filesystem.mjs"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.13.5",
+		"@cloudflare/vitest-pool-workers": "^0.14.0",
 		"@types/node": "^25.5.0",
 		"@vitest/coverage-istanbul": "4.1.2",
 		"@vitest/runner": "4.1.2",
