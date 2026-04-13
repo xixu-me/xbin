@@ -30,7 +30,7 @@
 		"@vitest/coverage-istanbul": "4.1.4",
 		"@vitest/runner": "4.1.4",
 		"@vitest/snapshot": "4.1.4",
-		"prettier": "^3.6.2",
+		"prettier": "^3.8.2",
 		"typescript": "^6.0.2",
 		"vite": "8.0.8",
 		"vitest": "~4.1.4",
