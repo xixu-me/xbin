@@ -31,7 +31,7 @@
 		"@vitest/runner": "4.1.4",
 		"@vitest/snapshot": "4.1.4",
 		"prettier": "^3.8.3",
-		"typescript": "^6.0.2",
+		"typescript": "^6.0.3",
 		"vite": "8.0.8",
 		"vitest": "~4.1.4",
 		"wrangler": "^4.83.0"
