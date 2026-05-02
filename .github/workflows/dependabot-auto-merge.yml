@@ -18,6 +18,8 @@ on:
       - 'codecov.yml'
 
 permissions:
+  actions: read
+  checks: read
   contents: write
   pull-requests: write
 
@@ -51,6 +53,71 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr review --approve "$PR_URL" --body "Safe Dependabot update approved for auto-merge."
+
+      - name: Wait for pull request checks to pass
+        if: >
+          contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type) ||
+          (steps.metadata.outputs.update-type == 'version-update:semver-major' &&
+           (steps.metadata.outputs.package-ecosystem == 'github-actions' ||
+            steps.metadata.outputs.dependency-type == 'direct:development'))
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+
+          remaining_attempts=180
+          while [ "$remaining_attempts" -gt 0 ]; do
+            set +e
+            checks="$(
+              gh pr checks "$PR_URL" \
+                --json bucket,name,state,workflow \
+                --jq '[.[] | select(.workflow != "Dependabot Auto Merge")]'
+            )"
+            checks_status="$?"
+            set -e
+
+            if [ "$checks_status" -ne 0 ] && [ "$checks_status" -ne 8 ]; then
+              exit "$checks_status"
+            fi
+
+            check_count="$(jq 'length' <<<"$checks")"
+            if [ "$check_count" -eq 0 ]; then
+              echo "No pull request checks found yet."
+              sleep 10
+              remaining_attempts=$((remaining_attempts - 1))
+              continue
+            fi
+
+            ci_check_count="$(jq '[.[] | select(.workflow == "CI")] | length' <<<"$checks")"
+            if [ "$ci_check_count" -eq 0 ]; then
+              echo "CI checks have not appeared yet."
+              sleep 10
+              remaining_attempts=$((remaining_attempts - 1))
+              continue
+            fi
+
+            failures="$(jq -r '.[] | select(.bucket == "fail" or .bucket == "cancel") | "- \(.name) [\(.workflow // "external")]: \(.state)"' <<<"$checks")"
+            if [ -n "$failures" ]; then
+              echo "One or more pull request checks failed:"
+              echo "$failures"
+              exit 1
+            fi
+
+            pending="$(jq -r '.[] | select(.bucket == "pending") | "- \(.name) [\(.workflow // "external")]: \(.state)"' <<<"$checks")"
+            if [ -z "$pending" ]; then
+              jq -r '.[] | "- \(.name) [\(.workflow // "external")]: \(.state)"' <<<"$checks"
+              exit 0
+            fi
+
+            echo "Waiting for pull request checks:"
+            echo "$pending"
+            sleep 10
+            remaining_attempts=$((remaining_attempts - 1))
+          done
+
+          echo "Timed out waiting for pull request checks to complete."
+          exit 1
 
       - name: Enable auto-merge for safe update
         if: >
