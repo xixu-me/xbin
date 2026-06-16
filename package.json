@@ -27,7 +27,7 @@
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.16.15",
 		"@types/node": "^25.9.3",
-		"@vitest/coverage-istanbul": "4.1.8",
+		"@vitest/coverage-istanbul": "4.1.9",
 		"@vitest/runner": "4.1.8",
 		"@vitest/snapshot": "4.1.8",
 		"prettier": "^3.8.4",
