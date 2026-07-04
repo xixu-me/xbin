@@ -3,10 +3,10 @@ name: Dependabot Auto Merge
 on:
   workflow_run:
     workflows:
-      - "CI"
-      - "CodeQL"
-      - "Dependabot Updates"
-      - "Deploy"
+      - 'CI'
+      - 'CodeQL'
+      - 'Dependabot Updates'
+      - 'Deploy'
     types:
       - completed
   workflow_dispatch:
